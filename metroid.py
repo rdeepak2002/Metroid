@@ -1,5 +1,5 @@
 # imports
-import pygame, sys, time
+import pygame, sys, time, pygame.display
 from pygame.locals import *
 # images
 bif = "img/bg.jpg"
@@ -44,7 +44,6 @@ while True:
 		# key down
 		if event.type==KEYDOWN:
 
-
 			# key left
 			if event.key==K_LEFT:
 				samus['dx']=-1
@@ -67,9 +66,9 @@ while True:
 				if (samus['ammo'] > 0):		
 					dx = 0
 					if samus['state'][1] == 0:
-						dx = -1
+						dx = -2
 					else:
-						dx = +1
+						dx = +2
 
 					blasts.append({"x":samus['x'], "y":samus['y'], "dx":dx})
 					samus['ammo'] -= 1
@@ -99,33 +98,7 @@ while True:
 	samus['x']+=samus['dx']
 	samus['y']+=samus['dy']
 
-	for blast in blasts:
-		blast['x'] += blast['dx']
-
-	if samus['state'][1] == 0 and samus['state'][2] == 1:
-		if digit % 2 == 0:
-			samus['current_img'] = leftrunning
-		else:
-			samus['current_img'] = leftrunning2
-
-	if samus['state'][1] == 1 and samus['state'][2] == 1:
-		if digit % 2 == 0:
-			samus['current_img'] = rightrunning
-		else:
-			samus['current_img'] = rightrunning2
-
-	# update current state of sprite
-	sprite = pygame.image.load(samus['current_img']).convert_alpha()
-	blast_sprite=pygame.image.load(blast_img).convert_alpha()
-
-	# artsy stuff
-	screen.blit (background, (0,0))
-	screen.blit (sprite, (samus['x'],samus['y']))
-	for blast in blasts:
-		if (blast['x'] <= 800 or blast['x'] >= -100):
-			screen.blit (blast_sprite, (blast['x'],blast['y']))
-	
-	# gravity
+		# gravity
 	if samus['state'][0] == 1:
 		samus['y'] -= dm*3
 	else:
@@ -146,6 +119,36 @@ while True:
 
 	if samus['y'] < 200:
 		samus['state'][0] = 0
+
+	for blast in blasts:
+		blast['x'] += blast['dx']
+
+	if samus['state'][1] == 0 and samus['state'][2] == 1:
+		if digit % 2 == 0:
+			samus['current_img'] = leftrunning
+		else:
+			samus['current_img'] = leftrunning2
+
+	if samus['state'][1] == 1 and samus['state'][2] == 1:
+		if digit % 2 == 0:
+			samus['current_img'] = rightrunning
+		else:
+			samus['current_img'] = rightrunning2
+
+	font = pygame.font.Font(None, 30)
+	textImg = font.render("HEALTH: " + str(samus['hp']) + "       Ammo: " + str(samus['ammo']), 1, (255, 0, 0))
+
+	# update current state of sprite
+	sprite = pygame.image.load(samus['current_img']).convert_alpha()
+	blast_sprite=pygame.image.load(blast_img).convert_alpha()
+
+	# artsy stuff
+	screen.blit (background, (0,0))
+	screen.blit (sprite, (samus['x'],samus['y']))
+	for blast in blasts:
+		if (blast['x'] <= 800 or blast['x'] >= -100):
+			screen.blit (blast_sprite, (blast['x'],blast['y']))
+	screen.blit(textImg,(0,0))
 
 	# update display
 	pygame.display.update()
