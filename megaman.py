@@ -1,86 +1,125 @@
+# imports
+import pygame, sys, time
+from pygame.locals import *
+# images
 bif = "img/bg.jpg"
 mif = "img/metroidstanding.png"
 rightrunning = "img/metroidrightrunning1.png"
 rightrunning2 = "img/metroidrightrunning2.png"
 rightfacing = "img/metroidrightfacing.png"
 leftfacing = "img/metroidleftfacing.png"
-
-import pygame, sys
-from pygame.locals import *
-
+leftrunning = "img/metroidleftrunning1.png"
+leftrunning2 = "img/metroidleftrunning2.png"
+# housekeeping
 pygame.init()
 screen = pygame.display.set_mode((800,500),0,32)
 background=pygame.image.load(bif).convert()
-metroidstanding=pygame.image.load(mif).convert_alpha()
 
-x,y=400,360
-movex, movey = 0,0
+# state:[jump,left,right]
+samus = {"x":400,"y":360,"dx":0,"dy":0,"current_img":mif,"state":[0,0,0]}
 
-x=400
 clock=pygame.time.Clock()
 speed=150
 
-state = 0
-
+# GAME LOOP
 while True:
 
+	# time
+	milli=clock.tick()
+	seconds=milli/1000.
+	dm=seconds*speed
+	digit = int(str(time.clock()).split(".")[1]) / 10
+
+	# events
 	for event in pygame.event.get():
+
+		# quit game
 		if event.type == QUIT:
 			pygame.quit()
 			sys.exit()
 
+		# key down
 		if event.type==KEYDOWN:
 
-			if event.key==K_RIGHT:
-				movex=+1
 
+			# key left
+			if event.key==K_LEFT:
+				samus['dx']=-1
+				samus['state'][1] = 1
 
-			elif event.key==K_LEFT:
-				movex=-1
+			# key right
+			elif event.key==K_RIGHT:
+				samus['dx']=+1
+				samus['state'][2] = 1
 
+			# key x => jump
 			elif event.key==K_x:
-				if state == 0 and y == 360:
-					state = 1
+				if samus['state'][0] == 0 and samus['y'] == 360:
+					samus['state'][0] = 1
 
+		# key released
 		if event.type==KEYUP:
 
-			if event.key==K_RIGHT:
-				movex=0
+			# key left
+			if event.key==K_LEFT:
+				samus['dx'] = 0
+				samus['current_img'] = leftfacing
+				samus['state'][1] = 0
 
-			elif event.key==K_LEFT:
-				movex=0
-
+			# key right
+			elif event.key==K_RIGHT:
+				samus['dx'] = 0
+				samus['current_img'] = rightfacing
+				samus['state'][2] = 0
+			
+			# key x => jump
 			elif event.key==K_x:
-				movey=0
-				state = 0
+				samus['dy']=0
+				samus['state'][0] = 0
 				
-	x+=movex
-	y+=movey
+	samus['x']+=samus['dx']
+	samus['y']+=samus['dy']
 
+	if samus['state'][1] == 1:
+		if digit % 2 == 0:
+			samus['current_img'] = leftrunning
+		else:
+			samus['current_img'] = leftrunning2
+
+	if samus['state'][2] == 1:
+		if digit % 2 == 0:
+			samus['current_img'] = rightrunning
+		else:
+			samus['current_img'] = rightrunning2
+
+	# update current state of sprite
+	sprite = pygame.image.load(samus['current_img']).convert_alpha()
+
+	# artsy stuff
 	screen.blit (background, (0,0))
-	screen.blit (metroidstanding, (x,y))
-
-	milli=clock.tick()
-	seconds=milli/1000.
-	dm=seconds*speed
-	if state == 1:
-		y -= dm*3
+	screen.blit (sprite, (samus['x'],samus['y']))
+	
+	# gravity
+	if samus['state'][0] == 1:
+		samus['y'] -= dm*3
 	else:
-		y +=dm*3
+		samus['y'] +=dm*3
 
-	if x>780:
-		x=780
+	# boundaries
+	if samus['x']>780:
+		samus['x']=780
 
-	if x<0:
-		x=0
+	if samus['x']<0:
+		samus['x']=0
 
-	if y>360:
-		y=360
+	if samus['y']>360:
+		samus['y']=360
 
-	if y<0:
-		y=0
+	if samus['y']<0:
+		samus['y']=0
 
-	if y < 200:
-		state = 0
+	if samus['y'] < 200:
+		samus['state'][0] = 0
 
+	# update display
 	pygame.display.update()
